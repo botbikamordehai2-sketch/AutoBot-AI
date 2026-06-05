@@ -249,10 +249,10 @@ class RBACMiddleware:
         else:
             # Clear entire fallback; Redis keys expire naturally.
             _permission_cache.clear()
-            asyncio.ensure_future(self._clear_all_redis_keys(None))
+            asyncio.ensure_future(self._clear_all_redis_keys(user_id))
 
-    async def _clear_all_redis_keys(self, user_id: "uuid.UUID | None") -> None:
-        r = await get_async_redis_client()
+    async def _clear_all_redis_keys(self, user_id: uuid.UUID | None = None) -> None:
+        r = await _get_redis()
         if r is None:
             return
         try:
@@ -362,6 +362,11 @@ def _require_authentication(user_id: uuid.UUID | None, permissions_desc: str) ->
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required",
         )
+
+
+async def _emit_permission_denied_audit(user_id: uuid.UUID | None, permission: str, path: str) -> None:
+    """Emit an audit log entry for a permission-denied event (GH #6511)."""
+    logger.warning("RBAC: audit - permission denied user=%s perm=%s path=%s", user_id, permission, path)
 
 
 # ---------------------------------------------------------------------------
