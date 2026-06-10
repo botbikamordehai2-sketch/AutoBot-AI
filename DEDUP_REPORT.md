@@ -46,20 +46,21 @@ green. Did **not** invent a new `autobot_shared/hooks/` framework (the prompt's
 suggestion) — there is one real subsystem plus a backwards-compat alias; a third
 abstraction would couple, not simplify.
 
-### 3. Connector content-extraction helpers — DONE · `990d56fe2`
-`gdrive.py` and `onedrive.py` carried byte-identical `_content_hash`,
-`_extract_text_from_docx`, `_extract_text_from_pdf`; `_content_hash` was also
-duplicated (functionally identical) in `nextcloud.py` and `gitlab.py`.
+### 3. Connector content-extraction helpers — DONE
+`gdrive.py` and `onedrive.py` carried byte-identical `_extract_text_from_docx`
+and `_extract_text_from_pdf`. They (plus `nextcloud.py`/`gitlab.py`) also each
+defined a `_content_hash` helper that, on inspection, was **never called** —
+pre-existing dead code (change detection uses Redis timestamps, not hashes).
 
-- New `knowledge/connectors/content_extraction.py` holds `content_hash`,
-  `extract_text_from_docx`, `extract_text_from_pdf` (verbatim).
-- Four connectors import them (aliased to the existing private names → call sites
-  unchanged); dropped now-unused `hashlib`/`io` imports. OneDrive keeps its
-  provider-specific xlsx/pptx extractors (genuine deltas).
+- New `knowledge/connectors/content_extraction.py` holds the two used extractors,
+  `extract_text_from_docx` / `extract_text_from_pdf` (verbatim).
+- gdrive/onedrive import them (aliased to the existing private names → call sites
+  unchanged); OneDrive keeps its provider-specific xlsx/pptx extractors (deltas).
+- The four dead `_content_hash` copies were removed (not consolidated — zero
+  callers); CI autoflake confirmed and stripped the now-unused imports.
 
-**Lines removed:** ~60 net (5 files, −84 / +65, minus the new module).
 **Verification:** gdrive + onedrive tests = **35 passed**; connector batch suite
-**33 passed**; alias-identity smoke green.
+**33 passed**; full CI `code-quality` (flake8) green.
 
 ### 5. `autobot-backend/static/` vite build artifacts — DONE · `2252e38ec`
 Four hashed `static/js/index-*.js` bundles were tracked though `index.html`
