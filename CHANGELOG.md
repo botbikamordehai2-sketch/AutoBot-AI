@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Miscellaneous
+
+- *(release)* Changelog and fragments for v0.5.1 (#11851) ([#11851](https://github.com/mrveiss/AutoBot-AI/pull/11851))
+
+
+## [0.5.1] - 2026-07-17
+
 ### Bug Fixes
 
 - *(test)* Repair colocated llm_shared run-phase rot (#11840) (#11841) ([#11841](https://github.com/mrveiss/AutoBot-AI/pull/11841))
